@@ -22,7 +22,6 @@
                             <label for="day" class="col-1 col-form-label">Day</label>
                             <div class="col-3">
                                 <select id="month" class="form-control" v-model="selectedDay">
-                                    <option>All</option>
                                     <option v-for="index in dayAvailable" :key="index">{{ index }}</option>
                                 </select>
                             </div>
@@ -110,9 +109,9 @@ export default {
                 "2020",
                 "2021"
             ],
-            selectedYear: "",
-            selectedMonth: "",
-            selectedDay: "",
+            selectedYear: "2020",
+            selectedMonth: "January",
+            selectedDay: "1",
             dayAvailable: 0,
             
             monthAvailable: [ 
@@ -186,9 +185,6 @@ export default {
         }
     },
     mounted () {
-        this.selectedMonth = "January";
-        this.selectedDay = "1";
-        this.selectedYear = "2020"
         this.retrieveAllProfitsPerYear()
         this.retrieveAllProfitsPerMonthInSelectedYear();
         this.retrieveAllProfitsForSelectedDay();
