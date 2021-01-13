@@ -2,12 +2,23 @@
 <div id="nav">
     <nav class="navbar navbar-expand-md navbar-dark bg-dark">
         <div class="collapse navbar-collapse w-100 order-1 order-md-0 dual-collapse2">
-            <ul class="navbar-nav ml-auto">
+            <ul class="navbar-nav ml-0">
                 <li class="nav-item">
-                    <span class="navbar-brand logo" v-if="!isAuthenticated"><img :src="`${resourceURL}/GoBites-logo.png`" height="30px"></span>
+                    <span class="navbar-brand logo" ><img :src="`${resourceURL}/GoBites-logo.png`" height="30px"></span>
                 </li>
+
+                <li class="nav-item" v-if="isAuthenticated">
+                        <span class="nav-link" style="color:white;">Hello {{ getProfile }}</span>
+                </li>
+            </ul>
+            <ul class="navbar-nav ml-auto">
+                
                 <li class="nav-item">
-                    <router-link class="navbar-brand logo" to="/" v-if="isAuthenticated"><img :src="`${resourceURL}/GoBites-logo.png`" height="30px"></router-link>
+                    <button class="btn btn-primary btn-custom" type="button" v-if="isAuthenticated">
+                        <span class="caret">
+                            <router-link class="top-menu" to="/"> Dashboard </router-link>
+                        </span>
+                    </button>
                 </li>
 
                 <li class="nav-item" v-if="isAuthenticated">
@@ -40,15 +51,6 @@
                     <button class="btn btn-primary btn-custom" type="button">
                         <span class="caret">
                             <router-link class="top-menu" to="/orderList">Order List</router-link>
-                        </span>
-                    </button>
-                </li>
-
-                
-                <li class="nav-item" v-if="isAuthenticated">
-                    <button class="btn btn-primary btn-custom" type="button">
-                        <span class="caret">
-                            <router-link class="top-menu" to="/profile">{{ getProfile }}</router-link>
                         </span>
                     </button>
                 </li>

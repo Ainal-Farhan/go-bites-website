@@ -1,5 +1,5 @@
 <template>
-    <div class="container">
+    <div id="dashboard">
         <div class="small">
             <loading v-if='isLoading' />
             <h3 v-if='isLoading'>Generating the Graph</h3>
@@ -33,9 +33,44 @@
                     </div>
                 </div>
             </div>
-            <div class="graph">
-                <line-chart :chart-data="chartData" v-if="!isLoading"></line-chart>
+        </div>
+        <div class="row">
+            <div class="col graph">
+                <line-chart :chart-data="chartDataPerYear" v-if="!isLoading"></line-chart>
             </div>
+            <div class="col graph">
+                <line-chart :chart-data="chartDataPerMonth" v-if="!isLoading"></line-chart>
+            </div>
+            <div class="col graph">
+                <line-chart :chart-data="chartDataPerDay" v-if="!isLoading"></line-chart>
+            </div>
+        </div>
+        
+        <hr v-if='!isLoading'>
+        
+        <div class="table report" v-if='!isLoading'>
+            <h4></h4>
+            <table>
+                <thead>
+                    <tr>
+                        <th colspan="4">Report for {{ selectedDay }} {{ selectedMonth }} {{ selectedYear }}</th>
+                    </tr>
+                    <tr>
+                        <th></th>
+                        <th>{{ selectedDay }}</th>
+                        <th>{{ selectedMonth }}</th>
+                        <th>{{ selectedYear }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>Profits</th>
+                        <td>RM{{ totalProfitForSelectedDay }}</td>
+                        <td>RM{{ totalProfitForSelectedMonth }}</td>
+                        <td>RM{{ totalProfitForSelectedYear }}</td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
 </template>
@@ -53,7 +88,9 @@ export default {
     },
     data () {
         return {
-            chartData: null,
+            chartDataPerYear: null,
+            chartDataPerMonth: null,
+            chartDataPerDay: null,
             labels: [
                 "",
                 "January",
@@ -73,16 +110,12 @@ export default {
                 "2020",
                 "2021"
             ],
-            selectedYear: "2020",
+            selectedYear: "",
             selectedMonth: "",
             selectedDay: "",
             dayAvailable: 0,
             
             monthAvailable: [ 
-                {
-                    month: "All",
-                    number: 0
-                },
                 {
                     month: "January",
                     number: 1,
@@ -145,23 +178,26 @@ export default {
                 }
             ],
 
+            totalProfitForSelectedDay: .0,
+            totalProfitForSelectedMonth: .0,
+            totalProfitForSelectedYear: .0,
+
             isLoading: false,
         }
     },
     mounted () {
-        this.selectedMonth = "All";
-        this.selectedDay = "All";
+        this.selectedMonth = "January";
+        this.selectedDay = "1";
+        this.selectedYear = "2020"
         this.retrieveAllProfitsPerYear()
+        this.retrieveAllProfitsPerMonthInSelectedYear();
+        this.retrieveAllProfitsForSelectedDay();
     },
     methods: {
         getData() {
-            if(this.selectedMonth === "All" && this.selectedDay === "All") {
-                this.retrieveAllProfitsPerYear();
-            }else if(this.selectedMonth !== "All" && this.selectedDay === "All"){
-                this.retrieveAllProfitsPerMonthInSelectedYear();
-            } else if(this.selectedDay !== "All") {
-                this.retrieveAllProfitsForSelectedDay();
-            }
+            this.retrieveAllProfitsPerYear();
+            this.retrieveAllProfitsPerMonthInSelectedYear();
+            this.retrieveAllProfitsForSelectedDay();
         },
         async retrieveAllProfitsPerMonthInSelectedYear() {
             this.isLoading = true;
@@ -172,6 +208,8 @@ export default {
             var resultForEachDay = {};
 
             var selectedM = {};
+
+            var totalProfits = .0;
 
             for(var k = 0; k < this.monthAvailable.length; k++) {
                 if(this.monthAvailable[k].month === this.selectedMonth) {
@@ -207,18 +245,22 @@ export default {
                         
                         dayForLabels.push(label);
                         resultTotalProfit.push(profit.toFixed(2));
+                        totalProfits = parseFloat((totalProfits + profit));
                     }
                     
                 })
                 .catch(err => {
                     alert(err.message);
                 });
-        
+
+            
+            this.totalProfitForSelectedMonth = parseFloat(totalProfits).toFixed(2);
+
             resultForEachDay.totalProfitForEachDay = resultTotalProfit;
             resultForEachDay.labels = dayForLabels;
 
             // console.log(resultForEachDay);
-            this.fillData(resultForEachDay); 
+            this.fillDataMonth(resultForEachDay); 
             
             this.isLoading = false;
         },
@@ -229,6 +271,7 @@ export default {
             var resultForEachMonth = {};
             
             resultTotalProfit.push("0.00");
+            var totalProfits = .0;
 
             for(var i = 1; i < 13; i++) {
             await OrderDataService.getTotalPricePerMonth(this.selectedYear, i)
@@ -240,6 +283,8 @@ export default {
                         totalProfit += (parseFloat(res.data[j].totalPrice)) * 0.05;
                     }
                     resultTotalProfit.push(totalProfit.toFixed(2));
+                    if(totalProfit > 0)
+                        totalProfits = (totalProfits + totalProfit.toFixed(2));
                 })
                 .catch(err => {
                     alert(err.message);
@@ -248,7 +293,9 @@ export default {
         
             resultForEachMonth.totalProfitForEachMonth = resultTotalProfit;
             // console.log(resultForEachMonth);
-            this.fillData(resultForEachMonth);
+            
+            this.totalProfitForSelectedYear = parseFloat(totalProfits).toFixed(2);
+            this.fillDataYear(resultForEachMonth);
             
             this.isLoading = false;            
         },
@@ -259,6 +306,7 @@ export default {
             var timeLabels = [];
             
             var resultForEachDay = {};
+            var totalProfits = .0;
 
             var selectedM = {};
 
@@ -296,6 +344,7 @@ export default {
                         
                         timeLabels.push(label);
                         resultTotalProfit.push(profit.toFixed(2));
+                        totalProfits = (totalProfits + profit.toFixed(2));
                     }
                     
                 })
@@ -305,49 +354,48 @@ export default {
         
             resultForEachDay.totalProfitForAtATime = resultTotalProfit;
             resultForEachDay.labels = timeLabels;
-
+            
+            this.totalProfitForSelectedDay = parseFloat(totalProfits).toFixed(2);
             // console.log(resultForEachDay);
-            this.fillData(resultForEachDay); 
+            this.fillDataDay(resultForEachDay); 
             
             this.isLoading = false;
         },
-        fillData (result) {
-            if(this.selectedMonth !== "All" && this.selectedDay === "All") {
-                this.chartData = {
-                    labels: result.labels,
-                    datasets: [
-                            {
-                                label: 'Profit Gained Per Day in RM',
-                                backgroundColor: '#00FF00',
-                                data: result.totalProfitForEachDay
-                            }
-                        ]
-                    }
-            }else if(this.selectedMonth === "All" && this.selectedDay === "All"){
-                this.chartData = {
-                    labels: this.labels,
-                    datasets: [
-                            {
-                                label: 'Profit Gained Per Month in RM',
-                                backgroundColor: '#00FF00',
-                                data: result.totalProfitForEachMonth
-                            }
-                        ]
-                    }
-            }else if(this.selectedDay !== "All") {
-                this.chartData = {
-                    labels: result.labels,
-                    datasets: [
-                            {
-                                label: 'Profit Gained A a Time in RM',
-                                backgroundColor: '#00FF00',
-                                data: result.totalProfitForAtATime
-                            }
-                        ]
-                    }
-            }
-            
-            this.isLoading = false;
+        fillDataYear (result) {
+            this.chartDataPerYear = {
+                labels: this.labels,
+                datasets: [
+                        {
+                            label: 'Profit Gained Per Month in RM',
+                            backgroundColor: '#00FF00',
+                            data: result.totalProfitForEachMonth
+                        }
+                    ]
+                }
+        },
+        fillDataMonth (result) {
+            this.chartDataPerMonth = {
+                labels: result.labels,
+                datasets: [
+                        {
+                            label: 'Profit Gained Per Day in RM',
+                            backgroundColor: '#00FF00',
+                            data: result.totalProfitForEachDay
+                        }
+                    ]
+                }
+        },
+        fillDataDay (result) {
+            this.chartDataPerDay = {
+                labels: result.labels,
+                datasets: [
+                        {
+                            label: 'Profit Gained A a Time in RM',
+                            backgroundColor: '#00FF00',
+                            data: result.totalProfitForAtATime
+                        }
+                    ]
+                }
         }
     },
     watch: {
@@ -381,17 +429,36 @@ export default {
         margin-right: auto;
         margin-left: auto;
 
-        .graph {
-            max-width: 95%;
-            display: block;
-            margin-right: auto;
-            margin-left: auto;
-        }
+        
         .label-graph {
             max-width: 90%;
             display: block;
             margin-right: auto;
             margin-left: auto;
+            margin-bottom: 20px;
+        }
+    }
+
+    .graph {
+        max-width: 33%;
+        display: block;
+        margin-right: auto;
+        margin-left: auto;
+    }
+        
+    .report {
+        max-width: 90%;
+        display: block;
+        margin-right: auto;
+        margin-left: auto;
+        margin-top: 20px;
+        padding: 10px 10px 10px 10px;
+        table{
+            width: 100%;
+            
+            th, td {
+                text-align: center;
+            }
         }
     }
 </style>
