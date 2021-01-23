@@ -7,7 +7,6 @@
         <div class="row" v-if="menuItems.length != 0">
             <div class="col-md-3" v-for="(menuItem, id) in menuItems" :key="id">
                 <div class="card custom-card">
-                    <img :src="`${getItemPhoto(menuItem)}`" class="card-img-top" :alt="menuItem.itemPhoto">
                     <div class="card-body">
                         <h5 class="card-title">{{ menuItem.itemName }}</h5>
                         <p class="card-text">{{ menuItem.itemDesc }}</p>
@@ -34,33 +33,6 @@ export default {
     data() {
         return {
             resourcesURL: resourceURL + "/menu/items/",
-        }
-    },
-    methods: {
-        getItemPhoto(menuItem) {
-            console.log(this.resourcesURL);
-            if(menuItem.itemPhoto == undefined) {
-                return this.resourcesURL + "default.png";
-            }
-            // // To check whether the image exist
-            // fetch(this.resourcesURL + menuItem.itemPhoto, { 
-            //         method: 'GET',
-            //         mode: 'cors',
-            //         cache: 'no-cache',
-            //         credentials: 'omit',
-            //         headers: {
-            //             "Content-Type": "application/json"
-            //         }
-            //     })
-            //     .then(res => {
-            //         if (res.ok) {
-            //             return this.resourcesURL + menuItem.itemPhoto;
-            //         } else {
-            //             return this.resourcesURL + "default.png";
-            //         }
-            //     })
-            //     .catch(err => console.log('Error:', err));
-            return this.resourcesURL + menuItem.itemPhoto;
         }
     },
 }
