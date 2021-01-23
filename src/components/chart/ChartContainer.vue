@@ -112,7 +112,7 @@ export default {
             selectedYear: "2020",
             selectedMonth: "January",
             selectedDay: 1,
-            dayAvailable: 0,
+            dayAvailable: 31,
             
             monthAvailable: [ 
                 {
