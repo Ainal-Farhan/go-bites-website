@@ -1,9 +1,7 @@
 <template>
     <div id="dashboard">
         <div class="small">
-            <loading v-if='isLoading' />
-            <h3 v-if='isLoading'>Generating the Graph</h3>
-            <div class="label-graph" v-if='!isLoading'>
+            <div class="label-graph" v-if='!isLoadingYear && !isLoadingMonth && !isLoadingDay'>
                 <div class="row">
                     <div class="col">
                         <div class="form-group row">
@@ -35,19 +33,25 @@
         </div>
         <div class="row">
             <div class="col graph">
-                <line-chart :chart-data="chartDataPerYear" v-if="!isLoading"></line-chart>
+                <loading v-if='isLoadingYear' />
+                <h3 v-if='isLoadingYear'>Generating the Graph</h3>
+                <line-chart :chart-data="chartDataPerYear" v-if="!isLoadingYear"></line-chart>
             </div>
             <div class="col graph">
-                <line-chart :chart-data="chartDataPerMonth" v-if="!isLoading"></line-chart>
+                <loading v-if='isLoadingMonth' />
+                <h3 v-if='isLoadingMonth'>Generating the Graph</h3>
+                <line-chart :chart-data="chartDataPerMonth" v-if="!isLoadingMonth"></line-chart>
             </div>
             <div class="col graph">
-                <line-chart :chart-data="chartDataPerDay" v-if="!isLoading"></line-chart>
+                <loading v-if='isLoadingDay' />
+                <h3 v-if='isLoadingDay'>Generating the Graph</h3>
+                <line-chart :chart-data="chartDataPerDay" v-if="!isLoadingDay"></line-chart>
             </div>
         </div>
         
-        <hr v-if='!isLoading'>
+        <hr v-if='!isLoadingYear && !isLoadingMonth && !isLoadingDay'>
         
-        <div class="table report" v-if='!isLoading'>
+        <div class="table report" v-if='!isLoadingYear && !isLoadingMonth && !isLoadingDay'>
             <h4></h4>
             <table>
                 <thead>
@@ -56,9 +60,9 @@
                     </tr>
                     <tr>
                         <th></th>
-                        <th>{{ selectedDay }}</th>
-                        <th>{{ selectedMonth }}</th>
-                        <th>{{ selectedYear }}</th>
+                        <th>DAY</th>
+                        <th>MONTH</th>
+                        <th>YEAR</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -181,13 +185,13 @@ export default {
             totalProfitForSelectedMonth: .0,
             totalProfitForSelectedYear: .0,
 
-            isLoading: false,
+            isLoadingYear: false,
+            isLoadingMonth: false,
+            isLoadingDay: false,
         }
     },
     mounted () {
-        this.retrieveAllProfitsPerYear()
-        this.retrieveAllProfitsPerMonthInSelectedYear();
-        this.retrieveAllProfitsForSelectedDay();
+        this.getData();
     },
     methods: {
         getData() {
@@ -196,8 +200,8 @@ export default {
             this.retrieveAllProfitsForSelectedDay();
         },
         async retrieveAllProfitsPerMonthInSelectedYear() {
-            this.isLoading = true;
-                
+            
+            this.isLoadingMonth = true;    
             var resultTotalProfit = [];
             var dayForLabels = [];
             
@@ -241,7 +245,6 @@ export default {
                         
                         dayForLabels.push(label);
                         resultTotalProfit.push(profit.toFixed(2));
-                        totalProfits = parseFloat((totalProfits + profit));
                     }
                     
                 })
@@ -250,19 +253,21 @@ export default {
                 });
 
             
-            this.totalProfitForSelectedMonth = parseFloat(totalProfits).toFixed(2);
 
             resultForEachDay.totalProfitForEachDay = resultTotalProfit;
             resultForEachDay.labels = dayForLabels;
 
+            for(var m = 0; m < resultTotalProfit.length; m++) {
+                totalProfits += parseFloat(resultTotalProfit[m]);
+            }
+            this.totalProfitForSelectedMonth = parseFloat(totalProfits).toFixed(2);
+
             // console.log(resultForEachDay);
             this.fillDataMonth(resultForEachDay); 
-            
-            this.isLoading = false;
+            this.isLoadingMonth = false;    
         },
         async retrieveAllProfitsPerYear() {
-            this.isLoading = true;
-                
+            this.isLoadingYear = true;    
             var resultTotalProfit = [];
             var resultForEachMonth = {};
             
@@ -279,8 +284,6 @@ export default {
                         totalProfit += (parseFloat(res.data[j].totalPrice)) * 0.05;
                     }
                     resultTotalProfit.push(totalProfit.toFixed(2));
-                    if(totalProfit > 0)
-                        totalProfits = (totalProfits + totalProfit.toFixed(2));
                 })
                 .catch(err => {
                     alert(err.message);
@@ -288,16 +291,16 @@ export default {
         }
         
             resultForEachMonth.totalProfitForEachMonth = resultTotalProfit;
-            // console.log(resultForEachMonth);
+            for(var s = 0; s < resultTotalProfit.length; s++) {
+                totalProfits += parseFloat(resultTotalProfit[s]);
+            }
             
             this.totalProfitForSelectedYear = parseFloat(totalProfits).toFixed(2);
-            this.fillDataYear(resultForEachMonth);
-            
-            this.isLoading = false;            
+            this.fillDataYear(resultForEachMonth);  
+            this.isLoadingYear = false;      
         },
         async retrieveAllProfitsForSelectedDay() {
-            this.isLoading = true;
-                
+            this.isLoadingDay = true;    
             var resultTotalProfit = [];
             var timeLabels = [];
             
@@ -329,7 +332,7 @@ export default {
 
                         var profit = parseFloat(res.data[j].totalPrice) * 0.05;
                         var label = res.data[j].addedDate.substring(11, 16) + "H";
-
+                        console.log(profit);
                         while((j+1) < res.data.length) {
                             if(res.data[j].addedDate.substring(11, 16) === res.data[j+1].addedDate.substring(11, 16)) {
                                 profit += parseFloat(res.data[++j].totalPrice) * 0.05;
@@ -340,7 +343,6 @@ export default {
                         
                         timeLabels.push(label);
                         resultTotalProfit.push(profit.toFixed(2));
-                        totalProfits = (totalProfits + profit.toFixed(2));
                     }
                     
                 })
@@ -351,11 +353,14 @@ export default {
             resultForEachDay.totalProfitForAtATime = resultTotalProfit;
             resultForEachDay.labels = timeLabels;
             
+            for(var m = 0; m < resultTotalProfit.length; m++) {
+                totalProfits += parseFloat(resultTotalProfit[m]);
+            }
+
             this.totalProfitForSelectedDay = parseFloat(totalProfits).toFixed(2);
-            // console.log(resultForEachDay);
-            this.fillDataDay(resultForEachDay); 
             
-            this.isLoading = false;
+            this.fillDataDay(resultForEachDay); 
+            this.isLoadingDay = false;
         },
         fillDataYear (result) {
             this.chartDataPerYear = {

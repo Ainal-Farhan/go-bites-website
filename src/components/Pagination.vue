@@ -85,6 +85,7 @@ export default {
             this.calculateTotalInformation();
             this.processData();
             this.initializeState();
+            this.initialPage();
             this.getProcessedData();
         },
     },
@@ -157,6 +158,7 @@ export default {
         this.calculateTotalInformation();
         this.processData();
         this.initializeState();
+        this.initialPage();
         this.getProcessedData();
     },
 }
