@@ -153,14 +153,6 @@ export default {
             await OrderDataService.updateOrderStatus(order)
                 .then(() => {
                     alert("Successfully update the Status to DONE");
-                    if(this.searching === true) {
-                        for(var i = 0; i < this.searchResult.length; i++) {
-                            if(order.orderId === this.searchResult[i].orderId) {
-                                this.searchResult[i].status = order.status;
-                                break;
-                            }
-                        }
-                    }
                 }).catch(() => {
                     alert("Failed to Update the Status Of the Order");
                 });
