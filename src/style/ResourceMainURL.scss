@@ -1,5 +1,6 @@
-$resource-url: 'https://go-bites-server.herokuapp.com/resources';
+// $resource-url: 'https://go-bites-server.herokuapp.com/resources';
 // $resource-url: 'http://localhost:8080/resources';
+$resource-url: 'http://pharveish.ml/resources';
 
 :export {
     resourceURL: $resource-url;
